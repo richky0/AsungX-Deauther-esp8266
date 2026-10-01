@@ -1,0 +1,31 @@
+# Build artifacts
+*.bin
+*.elf
+*.map
+*.bin.gz
+build/
+release/
+
+# Backup files
+*.bak
+*.bak2
+*.backup
+*.pre_*
+*.tmp
+*~
+
+# Patch scripts
+*.py
+*.patch
+
+# IDE
+.vscode/
+.idea/
+*.swp
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log

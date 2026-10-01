@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="theme-color" content="#0a0e14">
+<title>AsungX — Pengaturan</title>
+<link rel="stylesheet" href="style.css">
+<script src="js/site.js"></script>
+<script src="js/settings.js"></script>
+</head>
+<body onload="loadLang()">
+<nav>
+  <ul class="menu">
+    <li><a href="scan.html" data-translate="scan">Pindai</a></li>
+    <li><a href="ssids.html" data-translate="ssids">SSID</a></li>
+    <li><a href="attack.html" data-translate="attacks">Serangan</a></li>
+    <li><a href="fsmanager.html">File</a></li>
+    <li><a href="settings.html" class="active" data-translate="settings">Pengaturan</a></li>
+  </ul>
+</nav>
+<div id="status"></div>
+<div class="container">
+  <div class="row">
+    <div class="col-12">
+      <h1 class="header" data-translate="settings">Pengaturan</h1>
+
+      <div class="button-group">
+        <button onclick="getFile('run?cmd=stopap');alert('Access point dimatikan. Restart AsungX untuk menyambung kembali.')" class="red" data-translate="wifi_off">Matikan WiFi</button>
+        <button onclick="getFile('run?cmd=reset;;save settings')" class="red" data-translate="reset">Reset</button>
+        <button onclick="getFile('run?cmd=reboot')" class="red btn-reload" data-translate="reboot">Reboot</button>
+      </div>
+
+      <div class="info-box">
+        <p><span class="red">INFO:</span><br>
+        - Beberapa pengaturan perlu reboot.<br>
+        - Klik Simpan untuk memastikan perubahan diterapkan.</p>
+      </div>
+
+      <div class="button-group">
+        <button onclick="save()" data-translate="save">Simpan</button>
+        <button onclick="load()" class="btn-reload" data-translate="reload">Muat Ulang</button>
+      </div>
+
+      <div id="settingsList"></div>
+    </div>
+  </div>
+</div>
+<footer>
+  <span>AsungX</span><br>
+  <span>By AsungX</span>
+</footer>
+</body>
+</html>

@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="theme-color" content="#0a0e14">
+<title>AsungX — Serangan</title>
+<link rel="stylesheet" href="style.css">
+<script src="js/site.js"></script>
+<script src="js/attack.js"></script>
+</head>
+<body onload="loadLang()">
+<nav>
+  <ul class="menu">
+    <li><a href="scan.html" data-translate="scan">Pindai</a></li>
+    <li><a href="ssids.html" data-translate="ssids">SSID</a></li>
+    <li><a href="attack.html" class="active" data-translate="attacks">Serangan</a></li>
+    <li><a href="fsmanager.html">File</a></li>
+    <li><a href="settings.html" data-translate="settings">Pengaturan</a></li>
+  </ul>
+</nav>
+<div id="status"></div>
+<div class="container">
+  <div class="row">
+    <div class="col-12">
+      <h1 class="header" data-translate="attacks">Serangan</h1>
+
+      <div class="info-box">
+        <p><span class="red">INFO:</span><br>
+        - Koneksi mungkin terputus saat memulai serangan.<br>
+        - Pilih target untuk serangan deauth.<br>
+        - SSID harus disimpan untuk serangan beacon & probe.<br>
+        - Klik muat ulang untuk refresh packet rate.</p>
+      </div>
+
+      <div class="button-group">
+        <button onclick="stopAll()" data-translate="stop">Hentikan</button>
+        <button onclick="load()" data-translate="reload" class="btn-reload">Muat Ulang</button>
+      </div>
+
+      <div class="table-wrap">
+        <table>
+          <tr>
+            <th data-translate="attacks">Serangan</th>
+            <th data-translate="targets">Target</th>
+            <th>Pkts/s</th>
+            <th data-translate="start_stop">MULAI / STOP</th>
+          </tr>
+          <tr><td>Deauth</td><td id="deauthTargets">0</td><td id="deauthPkts">0/0</td><td><button id="deauth" onclick="start(0)" class="select" data-translate="start">MULAI</button></td></tr>
+          <tr><td>Deauth Semua</td><td id="deauthAllTargets">0</td><td id="deauthAllPkts">0/0</td><td><button id="deauthAll" onclick="start(3)" class="select" data-translate="start">MULAI</button></td></tr>
+          <tr><td>Beacon</td><td id="beaconTargets">0</td><td id="beaconPkts">0/0</td><td><button id="beacon" onclick="start(1)" class="select" data-translate="start">MULAI</button></td></tr>
+          <tr><td>Probe</td><td id="probeTargets">0</td><td id="probePkts">0/0</td><td><button id="probe" onclick="start(2)" class="select" data-translate="start">MULAI</button></td></tr>
+          <tr><td>Evil Twin</td><td id="evilTwinTargets">[Belum ada]</td><td></td><td><button id="evilTwin" onclick="start(4)" class="select" data-translate="start">MULAI</button></td></tr>
+          <tr><td colspan="2">Total Pkts/s:</td><td colspan="2" id="allpkts">0</td></tr>
+        </table>
+      </div>
+
+      <h2>Deauth</h2>
+      <p>Menutup koneksi perangkat WiFi dengan mengirim frame deauthentication ke access point dan klien yang Anda pilih.</p>
+      <h2>Beacon</h2>
+      <p>Paket beacon untuk memalsukan access point. Dengan mengirim terus menerus, akan tampak seperti Anda membuat jaringan WiFi baru.</p>
+      <h2>Probe</h2>
+      <p>Probe request dikirim perangkat klien untuk mencari jaringan yang dikenal. Gunakan untuk membingungkan WiFi tracker.</p>
+    </div>
+  </div>
+</div>
+<footer>
+  <span>AsungX</span><br>
+  <span>By AsungX</span>
+</footer>
+</body>
+</html>

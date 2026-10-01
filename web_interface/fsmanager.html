@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="theme-color" content="#0a0e14">
+<title>AsungX — File Manager</title>
+<link rel="stylesheet" href="style.css">
+<script src="js/site.js"></script>
+<script src="js/fs.js"></script>
+</head>
+<body onload="loadLang()">
+<nav>
+  <ul class="menu">
+    <li><a href="scan.html" data-translate="scan">Pindai</a></li>
+    <li><a href="ssids.html" data-translate="ssids">SSID</a></li>
+    <li><a href="attack.html" data-translate="attacks">Serangan</a></li>
+    <li><a href="fsmanager.html" class="active">File</a></li>
+    <li><a href="settings.html" data-translate="settings">Pengaturan</a></li>
+  </ul>
+</nav>
+<div id="status"></div>
+<div class="container">
+  <div class="row">
+    <div class="col-12">
+      <h1 class="header">Manajer File</h1>
+
+      <div class="info-box">
+        <p>Kelola file di penyimpanan internal. Bisa unggah, hapus, dan atur captive portal.</p>
+      </div>
+
+      <div class="table-wrap"><table id="log"></table></div>
+
+      <h2>Captive Portal (Evil Twin)</h2>
+      <form action="/pathsave" method="get">
+        <label>Path halaman Evil Twin:</label><br>
+        <input type="text" name="path" id="eviltwinpath" placeholder="/contoh.html">
+        <input type="submit" value="Simpan">
+      </form>
+
+      <h2>Unggah File</h2>
+      <form action="/upload" method="post" enctype="multipart/form-data" class="button-group">
+        <input type="file" name="upload">
+        <input type="submit" value="Unggah">
+      </form>
+
+      <h2>Daftar File</h2>
+      <div class="table-wrap">
+        <table id="fileList">
+          <tr><th>Nama File</th><th>Ukuran</th><th></th></tr>
+        </table>
+      </div>
+      <p id="fsinfo"></p>
+
+      <button onclick="format();" style="width: 100%; margin-top: 20px;">Format Data</button>
+    </div>
+  </div>
+</div>
+<footer>
+  <span>AsungX</span><br>
+  <span>By AsungX</span>
+</footer>
+</body>
+</html>
