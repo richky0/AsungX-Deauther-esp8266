@@ -1,5 +1,13 @@
 # AsungX
 
+[![Animation Studio](https://img.shields.io/badge/Animation%20Studio-Web%20Converter-purple?logo=github)](https://github.com/richky0/AsungX-ESP8266-OLED-Studio-Generator)
+[![Version](https://img.shields.io/badge/Version-v1.1.0-blue)](https://github.com/richky0/AsungX-Deauther-esp8266/releases)
+[![License](https://img.shields.io/badge/License-MIT-green)](LICENSE)
+
+> 🎬 **Web-based OLED animation converter:** [AsungX-ESP8266-OLED-Studio-Generator](https://github.com/richky0/AsungX-ESP8266-OLED-Studio-Generator)
+>
+> Convert video/GIF → animasi `.bin` siap upload ke firmware ini.
+
 Firmware ESP8266 untuk pembelajaran dan pengujian keamanan Wi-Fi secara terkendali. Proyek ini menyediakan antarmuka web lengkap untuk mengontrol seluruh fitur, dengan OLED 0.96" yang menampilkan animasi dan status proses.
 
 > ⚠️ **Gunakan hanya pada jaringan milik sendiri atau yang sudah mendapat izin tertulis.** Pengujian dapat mengganggu konektivitas perangkat lain. Patuhi hukum setempat.
