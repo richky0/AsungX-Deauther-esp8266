@@ -1,31 +1,31 @@
 # Build artifacts
-*.bin
+AsungX/build/
 *.elf
 *.map
-*.bin.gz
-build/
-release/
+*.hex
+!release/*.bin
 
 # Backup files
-*.bak
-*.bak2
-*.backup
 *.pre_*
+*.bak
 *.tmp
-*~
+*.orig
 
-# Patch scripts
-*.py
-*.patch
+# OS files
+.DS_Store
+Thumbs.db
 
 # IDE
 .vscode/
 .idea/
 *.swp
 
-# OS
-.DS_Store
-Thumbs.db
+# Python
+__pycache__/
+*.pyc
+
+# Tools samples
+tools/samples/
 
 # Logs
 *.log

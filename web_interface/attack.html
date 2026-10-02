@@ -15,6 +15,7 @@
     <li><a href="scan.html" data-translate="scan">Pindai</a></li>
     <li><a href="ssids.html" data-translate="ssids">SSID</a></li>
     <li><a href="attack.html" class="active" data-translate="attacks">Serangan</a></li>
+    <li><a href="animation.html" data-translate="animation">Animasi</a></li>
     <li><a href="fsmanager.html">File</a></li>
     <li><a href="settings.html" data-translate="settings">Pengaturan</a></li>
   </ul>
@@ -48,6 +49,7 @@
           </tr>
           <tr><td>Deauth</td><td id="deauthTargets">0</td><td id="deauthPkts">0/0</td><td><button id="deauth" onclick="start(0)" class="select" data-translate="start">MULAI</button></td></tr>
           <tr><td>Deauth Semua</td><td id="deauthAllTargets">0</td><td id="deauthAllPkts">0/0</td><td><button id="deauthAll" onclick="start(3)" class="select" data-translate="start">MULAI</button></td></tr>
+<tr><td>Deauth All (Adaptive ⭐)</td><td id="deauthAdaptiveTargets">0</td><td id="deauthAdaptivePkts">0/0</td><td><button id="deauthAdaptive" onclick="start(5)" class="select" data-translate="start">MULAI</button></td></tr>
           <tr><td>Beacon</td><td id="beaconTargets">0</td><td id="beaconPkts">0/0</td><td><button id="beacon" onclick="start(1)" class="select" data-translate="start">MULAI</button></td></tr>
           <tr><td>Probe</td><td id="probeTargets">0</td><td id="probePkts">0/0</td><td><button id="probe" onclick="start(2)" class="select" data-translate="start">MULAI</button></td></tr>
           <tr><td>Evil Twin</td><td id="evilTwinTargets">[Belum ada]</td><td></td><td><button id="evilTwin" onclick="start(4)" class="select" data-translate="start">MULAI</button></td></tr>
@@ -57,7 +59,9 @@
 
       <h2>Deauth</h2>
       <p>Menutup koneksi perangkat WiFi dengan mengirim frame deauthentication ke access point dan klien yang Anda pilih.</p>
-      <h2>Beacon</h2>
+      <h2>Deauth All (Adaptive ⭐)</h2>
+<p>Mode deauth dinamis: memindai ulang AP setiap 15 detik dan menyerang AP baru yang muncul. Cocok untuk skenario mobile (jalan kaki).</p>
+<h2>Beacon</h2>
       <p>Paket beacon untuk memalsukan access point. Dengan mengirim terus menerus, akan tampak seperti Anda membuat jaringan WiFi baru.</p>
       <h2>Probe</h2>
       <p>Probe request dikirim perangkat klien untuk mencari jaringan yang dikenal. Gunakan untuk membingungkan WiFi tracker.</p>

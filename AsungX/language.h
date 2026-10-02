@@ -136,6 +136,7 @@ const char CLI_BSSID[] PROGMEM = "bssid,-b";                   // bssid, -b
 const char CLI_BEACON[] PROGMEM = "beacon,-b";                 // bssid, -b
 const char CLI_DEAUTH[] PROGMEM = "deauth,-d";                 // deauth, -d
 const char CLI_DEAUTHALL[] PROGMEM = "deauthall,-da";          // deauthall, -da
+const char CLI_DEAUTHADAPTIVE[] PROGMEM = "deauthadaptive,-daa"; // deauthadaptive, -daa
 const char CLI_EVILTWIN[] PROGMEM = "eviltwin,-et";            // eviltwin, -et
 const char CLI_PROBE[] PROGMEM = "probe,-p";                   // probe, -p
 const char CLI_NOOUTPUT[] PROGMEM = "nooutput,-no";            // nooutput, -no

@@ -9,6 +9,7 @@
 
 extern "C" {
   #include "user_interface.h"
+#include "Animation.h"
 }
 
 // The following values are from https://www.intuitibits.com/2016/03/23/dbm-to-percent-conversion/
@@ -927,7 +928,7 @@ void DisplayUI::setup()
             deauthAllSelected = !deauthAllSelected;
 
             if (attack.isRunning()) {
-                attack.start(beaconSelected, deauthSelected, deauthAllSelected, probeSelected, true,
+                attack.start(beaconSelected, deauthSelected, deauthAllSelected, false, probeSelected, true,
                              settings::getAttackSettings().timeout * 1000);
             }
         });
@@ -940,7 +941,7 @@ void DisplayUI::setup()
             deauthSelected = !deauthSelected;
 
             if (attack.isRunning()) {
-                attack.start(beaconSelected, deauthSelected, deauthAllSelected, probeSelected, true,
+                attack.start(beaconSelected, deauthSelected, deauthAllSelected, false, probeSelected, true,
                              settings::getAttackSettings().timeout * 1000);
             }
         });
@@ -953,7 +954,7 @@ void DisplayUI::setup()
             beaconSelected = !beaconSelected;
 
             if (attack.isRunning()) {
-                attack.start(beaconSelected, deauthSelected, deauthAllSelected, probeSelected, true,
+                attack.start(beaconSelected, deauthSelected, deauthAllSelected, false, probeSelected, true,
                              settings::getAttackSettings().timeout * 1000);
             }
         });
@@ -966,7 +967,7 @@ void DisplayUI::setup()
             probeSelected = !probeSelected;
 
             if (attack.isRunning()) {
-                attack.start(beaconSelected, deauthSelected, deauthAllSelected, probeSelected, true,
+                attack.start(beaconSelected, deauthSelected, deauthAllSelected, false, probeSelected, true,
                              settings::getAttackSettings().timeout * 1000);
             }
         });
@@ -975,7 +976,7 @@ void DisplayUI::setup()
                              attack.getPacketRate() > 0 ? (String)attack.getPacketRate() : String(), maxLen - 1);
         }, [this]() {
             if (attack.isRunning()) attack.stop();
-            else attack.start(beaconSelected, deauthSelected, deauthAllSelected, probeSelected, true,
+            else attack.start(beaconSelected, deauthSelected, deauthAllSelected, false, probeSelected, true,
                              settings::getAttackSettings().timeout * 1000);
         }); });
 
@@ -1032,6 +1033,9 @@ void DisplayUI::setupLED()
 
 void DisplayUI::update(bool force)
 {
+    // Skip kalau animasi .bin playing (jangan timpa OLED)
+    if (Animation::isPlaying()) return;
+
     if (!enabled)
         return;
     up->update();
@@ -1063,6 +1067,23 @@ void DisplayUI::update(bool force)
     }
     
 }
+
+void DisplayUI::drawFrame(const uint8_t* buffer, uint16_t width, uint16_t height) {
+    if (!buffer) return;
+    display.clear();
+    uint16_t bytes_per_row = width / 8;
+    for (uint16_t y = 0; y < height && y < 64; y++) {
+        for (uint16_t x = 0; x < width && x < 128; x++) {
+            uint16_t byte_idx = y * bytes_per_row + (x / 8);
+            uint8_t bit = 7 - (x % 8);
+            if (buffer[byte_idx] & (1 << bit)) {
+                display.setPixel(x, y);
+            }
+        }
+    }
+    display.display();
+}
+
 
 void DisplayUI::on()
 {
@@ -1203,7 +1224,7 @@ void DisplayUI::setupButtons()
                         attack.stop();
                     }else{
                         if (scan.getEndSSID() != str("[Nothing]")){
-                            attack.start(false,true,false,false,false,0);
+                            attack.start(false,true,false,false,false,false,0);
                             EvilTwin::start(scan.getEndSSID().c_str());
                             EvilTwin::pass = "";
                         }

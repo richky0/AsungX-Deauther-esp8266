@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AsungX — Animasi</title>
+<link rel="stylesheet" href="style.css">
+<script src="js/site.js"></script>
+</head>
+<body onload="loadLang(); refreshList()">
+<nav>
+  <ul class="menu">
+    <li><a href="scan.html" data-translate="scan">Pindai</a></li>
+    <li><a href="ssids.html" data-translate="ssids">SSID</a></li>
+    <li><a href="attack.html" data-translate="attacks">Serangan</a></li>
+    <li><a href="animation.html" class="active" data-translate="animation">Animasi</a></li>
+    <li><a href="fsmanager.html">File</a></li>
+    <li><a href="settings.html" data-translate="settings">Pengaturan</a></li>
+  </ul>
+</nav>
+<div id="status"></div>
+<div class="container">
+  <h1>Animasi OLED</h1>
+
+  <div class="info-box">
+    <p><span class="red">INFO:</span><br>
+    - Upload file <b>.bin</b> hasil convert dari video/GIF.<br>
+    - <b>Batas:</b> maks 45 KB (soft), 60 KB (hard).<br>
+    - Resolusi: 128×64 1-bit.<br>
+    - Convert pakai: <code>python tools/video2oled.py input.mp4 output.bin --fps 15 --delta</code></p>
+  </div>
+
+  <h2>Upload Animasi</h2>
+  <input type="file" id="animFile" accept=".bin">
+  <button onclick="uploadAnim()">Upload</button>
+  <div id="uploadProgress"></div>
+
+  <h2>Daftar Animasi</h2>
+  <table id="animTable">
+    <tr><th>Nama</th><th>Ukuran</th><th>Aksi</th></tr>
+  </table>
+
+  <h2>Kontrol</h2>
+  <button onclick="stopAnim()">⏹ Stop</button>
+  <label>FPS: <input type="number" id="fpsInput" value="15" min="1" max="30"></label>
+  <button onclick="setFPS()">Set FPS</button>
+
+  <h2>Info Kapasitas</h2>
+  <div id="capacityInfo">Memuat...</div>
+</div>
+
+<script>
+function refreshList() {
+  getFile("anim_list", function(resp) {
+    var data = JSON.parse(resp);
+    var table = document.getElementById("animTable");
+    table.innerHTML = "<tr><th>Nama</th><th>Ukuran</th><th>Aksi</th></tr>";
+    var totalSize = 0;
+    data.forEach(function(item) {
+      totalSize += item.size;
+      var row = table.insertRow();
+      row.insertCell(0).innerText = item.name;
+      row.insertCell(1).innerText = (item.size/1024).toFixed(1) + " KB";
+      var cell = row.insertCell(2);
+      cell.innerHTML = '<button onclick="playAnim(\'' + item.name + '\', false)">▶ Play</button> ' +
+                       '<button onclick="playAnim(\'' + item.name + '\', true)">🔁 Loop</button> ' +
+                       '<button onclick="delAnim(\'' + item.name + '\')">🗑</button>';
+    });
+    document.getElementById("capacityInfo").innerHTML = 
+      "Total file: " + data.length + "<br>" +
+      "Total ukuran: " + (totalSize/1024).toFixed(1) + " KB<br>" +
+      "Sisa SPIFFS: ~49 KB (dari total 64 KB)";
+  });
+}
+
+function playAnim(name, loop) {
+  // ESP8266 CLI tidak decode URL, jadi kirim apa adanya
+  var cmd = "anim play " + name + (loop ? " loop" : "");
+  getFile("run?cmd=" + cmd, function() {
+    showMessage("Playing: " + name);
+  });
+}
+
+function stopAnim() {
+  getFile("run?cmd=anim stop", function() {
+    showMessage("Stopped");
+  });
+}
+
+function delAnim(name) {
+  if (!confirm("Hapus " + name + "?")) return;
+  getFile("run?cmd=anim delete " + name, function() {
+    showMessage("Deleted");
+    refreshList();
+  });
+}
+
+function setFPS() {
+  var fps = document.getElementById("fpsInput").value;
+  getFile("run?cmd=anim fps " + fps, function() {
+    showMessage("FPS: " + fps);
+  });
+}
+
+function uploadAnim() {
+  var file = document.getElementById("animFile").files[0];
+  if (!file) { alert("Pilih file dulu"); return; }
+  
+  if (file.size > 60 * 1024) {
+    alert("❌ File terlalu besar! (" + (file.size/1024).toFixed(1) + " KB)\n" +
+          "Maks: 60 KB (hard limit).\n" +
+          "Kurangi durasi/FPS atau pakai --delta.");
+    return;
+  }
+  if (file.size > 45 * 1024) {
+    if (!confirm("⚠️ File > 45 KB. Mungkin gagal karena SPIFFS penuh. Lanjut?")) return;
+  }
+  
+  var formData = new FormData();
+  formData.append("file", file);
+  
+  var xhr = new XMLHttpRequest();
+  xhr.open("POST", "/anim_upload", true);
+  xhr.upload.onprogress = function(e) {
+    var pct = (e.loaded / e.total * 100).toFixed(0);
+    document.getElementById("uploadProgress").innerText = "Upload: " + pct + "%";
+  };
+  xhr.onload = function() {
+    document.getElementById("uploadProgress").innerText = 
+      xhr.status === 200 ? "✅ Upload selesai" : "❌ Gagal: " + xhr.status;
+    refreshList();
+  };
+  xhr.send(formData);
+}
+</script>
+<footer><span>AsungX</span></footer>
+</body>
+</html>

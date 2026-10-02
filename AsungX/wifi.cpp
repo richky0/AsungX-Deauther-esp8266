@@ -27,6 +27,7 @@ extern "C" {
 extern bool progmemToSpiffs(const char* adr, int len, String path);
 
 #include "webfiles.h"
+#include "Animation.h"
 
 extern Scan   scan;
 extern CLI    cli;
@@ -533,6 +534,9 @@ namespace wifi {
             server.on("/ssids.html", HTTP_GET, []() {
                 sendProgmem(ssidshtml, sizeof(ssidshtml), W_HTML);
             });
+            server.on("/animation.html", HTTP_GET, []() {
+                sendProgmem(animationhtml, sizeof(animationhtml), W_HTML);
+            });
             server.on("/attack.html", HTTP_GET, []() {
                 sendProgmem(attackhtml, sizeof(attackhtml), W_HTML);
             });
@@ -662,6 +666,71 @@ namespace wifi {
             cli.exec(input);
         });
         
+
+        // ===== ANIMATION ENDPOINTS ===== //
+        server.on("/anim_list", HTTP_GET, []() {
+            server.send(200, "application/json", Animation::listFilesJSON());
+        });
+
+        server.on("/anim_upload", HTTP_POST, []() {
+            server.send(200, "text/plain", "OK");
+        }, []() {
+            HTTPUpload& upload = server.upload();
+            static File fsUploadFile;
+            static size_t uploadedSize = 0;
+            static char shortName[32];  // buffer nama pendek
+            if (upload.status == UPLOAD_FILE_START) {
+                uploadedSize = 0;
+                
+                // Truncate nama file ke 31 karakter (LittleFS limit)
+                String fname = upload.filename;
+                // Ambil hanya nama setelah '/' terakhir (strip path)
+                int lastSlash = fname.lastIndexOf('/');
+                if (lastSlash >= 0) fname = fname.substring(lastSlash + 1);
+                
+                // Cek ekstensi .bin
+                if (!fname.endsWith(".bin")) {
+                    prntln("Upload DITOLAK: bukan .bin");
+                    return;
+                }
+                
+                // Truncate ke 31 karakter (sisa 1 untuk null)
+                if (fname.length() > 30) {
+                    // Ambil suffix .bin + prefix
+                    fname = fname.substring(0, 26) + ".bin";
+                }
+                
+                String path = "/" + fname;
+                strncpy(shortName, path.c_str(), sizeof(shortName) - 1);
+                shortName[sizeof(shortName) - 1] = 0;
+                
+                size_t freeSpace = Animation::getFreeSpace();
+                prnt(String("Upload: ") + String(shortName) + " (free: " + freeSpace + ")");
+                
+                fsUploadFile = LittleFS.open(shortName, "w");
+                if (!fsUploadFile) {
+                    prntln("Upload GAGAL: LittleFS.open() null");
+                } else {
+                    prntln("Upload file OK");
+                }
+            } else if (upload.status == UPLOAD_FILE_WRITE) {
+                if (fsUploadFile) {
+                    fsUploadFile.write(upload.buf, upload.currentSize);
+                    uploadedSize += upload.currentSize;
+                    if (uploadedSize > ANIM_LIMIT_HARD) {
+                        prntln("Upload melebihi batas! Abort.");
+                        fsUploadFile.close();
+                        LittleFS.remove(shortName);
+                    }
+                }
+            } else if (upload.status == UPLOAD_FILE_END) {
+                if (fsUploadFile) {
+                    fsUploadFile.close();
+                    prnt(String("Upload SELESAI: ") + uploadedSize + " B");
+                    prnt(String("Path: ") + String(shortName));
+                }
+            }
+        });
 
         server.on("/attack.json", HTTP_GET, []() {
             server.send(200, str(W_JSON), attack.getStatusJSON());

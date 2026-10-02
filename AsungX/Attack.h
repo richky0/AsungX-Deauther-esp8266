@@ -36,7 +36,7 @@ class Attack {
         Attack();
 
         void start();
-        void start(bool beacon, bool deauth, bool deauthAll, bool probe, bool output, uint32_t timeout);
+        void start(bool beacon, bool deauth, bool deauthAll, bool deauthAdaptive, bool probe, bool output, uint32_t timeout);
         void stop();
         void update();
 
@@ -92,6 +92,7 @@ class Attack {
         AttackType beacon;
         AttackType probe;
         bool deauthAll = false;
+        bool deauthAdaptive = false;   // NEW: deauth dinamis (auto-rescan)
 
         uint32_t deauthPkts = 0;
         uint32_t beaconPkts = 0;
@@ -103,6 +104,10 @@ class Attack {
         uint8_t apCount = 0;
         uint8_t stCount = 0;
         uint8_t nCount  = 0;
+
+        // Opsi B: Dynamic deauth-all auto-rescan (keepExisting=FALSE)
+        uint32_t lastRescanTime = 0;
+        bool     rescanPending = false;
 
         int8_t tmpID = -1;
 

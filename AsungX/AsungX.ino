@@ -30,6 +30,7 @@ extern "C" {
 #include "SSIDs.h"
 #include "Scan.h"
 #include "Attack.h"
+#include "Animation.h"
 #include "CLI.h"
 #include "DisplayUI.h"
 #include "A_config.h"
@@ -56,6 +57,7 @@ uint32_t currentTime  = 0;
 bool booted = false;
 
 void setup() {
+    Animation::begin();
     // for random generator
     randomSeed(os_random());
 
@@ -160,7 +162,11 @@ void loop() {
     led::update();   // update LED color
     wifi::update();  // manage access point
     attack.update(); // run attacks
-    displayUI.update();
+    Animation::update(); // render animasi OLED
+    // Skip displayUI update kalau animasi .bin playing
+    if (!Animation::isPlaying()) {
+        displayUI.update();
+    }
     cli.update();    // read and run serial input
     scan.update();   // run scan
     ssids.update();  // run random mode, if enabled

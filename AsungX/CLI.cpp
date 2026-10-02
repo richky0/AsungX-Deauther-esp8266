@@ -7,6 +7,7 @@
 #include "wifi.h"
 
 #include "EvilTwin.h"
+#include "Animation.h"
 
 /*
    Shitty code used less resources so I will keep this clusterfuck as it is,
@@ -655,11 +656,12 @@ void CLI::runCommand(String input) {
             return;
         }
 
-        bool beacon      = false;
-        bool deauth      = false;
-        bool deauthAll   = false;
-        bool probe       = false;
-        bool evilTwin    = false;
+        bool beacon          = false;
+        bool deauth          = false;
+        bool deauthAll       = false;
+        bool deauthAdaptive  = false;
+        bool probe           = false;
+        bool evilTwin        = false;
         bool output      = true;
         uint32_t timeout = settings::getAttackSettings().timeout * 1000;
 
@@ -667,6 +669,7 @@ void CLI::runCommand(String input) {
             if (eqlsCMD(i, CLI_BEACON)) beacon = true;
             else if (eqlsCMD(i, CLI_DEAUTH)) deauth = true;
             else if (eqlsCMD(i, CLI_DEAUTHALL)) deauthAll = true;
+            else if (eqlsCMD(i, CLI_DEAUTHADAPTIVE)) deauthAdaptive = true;
             else if (eqlsCMD(i, CLI_PROBE)) probe = true;
             else if (eqlsCMD(i, CLI_EVILTWIN)) evilTwin = true;
             else if (eqlsCMD(i, CLI_NOOUTPUT)) output = false;
@@ -679,15 +682,47 @@ void CLI::runCommand(String input) {
         if (evilTwin && !EvilTwin::isRunning()){
             if (scan.getEndSSID() != str("[Nothing]")){
                 EvilTwin::start(scan.getEndSSID().c_str());
-                attack.start(false,true,false,false,false,0);
+                attack.start(false,true,false,false,false,false,0);
             }
         }else if (EvilTwin::isRunning()){
             EvilTwin::stop();
             attack.stop();
         }else{
-            attack.start(beacon, deauth, deauthAll, probe, output, timeout);
+            attack.start(beacon, deauth, deauthAll, deauthAdaptive, probe, output, timeout);
         }
         
+    }
+
+    // ===== ANIMATION ===== //
+    // anim play <file> [loop]
+    // anim stop
+    // anim list
+    // anim delete <file>
+    // anim fps <1-30>
+    else if (eqlsCMD(0, "anim")) {
+        if (list->size() < 2) {
+            prntln("Usage: anim play/stop/list/delete/fps");
+            return;
+        }
+        if (eqlsCMD(1, "play") && list->size() >= 3) {
+            bool loop = (list->size() >= 4) && eqlsCMD(3, "loop");
+            String fname = list->get(2);
+            if (!fname.startsWith("/")) fname = "/" + fname;
+            Animation::play(fname.c_str(), loop);
+        }
+        else if (eqlsCMD(1, "stop")) Animation::stop();
+        else if (eqlsCMD(1, "list")) prntln(Animation::listFilesJSON());
+        else if (eqlsCMD(1, "delete") && list->size() >= 3) {
+            String fname = list->get(2);
+            if (!fname.startsWith("/")) fname = "/" + fname;
+            if (Animation::deleteFile(fname.c_str())) prntln("Deleted");
+            else prntln("File tidak ditemukan");
+        }
+        else if (eqlsCMD(1, "fps") && list->size() >= 3) {
+            Animation::setFPS(list->get(2).toInt());
+            prnt(String("FPS: ") + Animation::getFPS());
+        }
+        else prntln("Unknown anim command");
     }
 
     // ===== GET/SET ===== //

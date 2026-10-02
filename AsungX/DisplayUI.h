@@ -122,6 +122,7 @@ class DisplayUI {
         void configOff();
         void shutDown();
         void updatePrefix();
+        void drawFrame(const uint8_t* buffer, uint16_t width, uint16_t height);
         void drawCharging();
         void updateSuffix();
         void drawString(int x, int y, String str);
